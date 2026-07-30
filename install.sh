@@ -38,6 +38,18 @@ esac
 wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q -O ubuntu.tar.gz 
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n"
 
+# Verify SHA256 checksum to protect against MITM / corruption (Sentinel security improvement)
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Verifying SHA256 checksum...\n"
+wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS -q -O SHA256SUMS
+grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" SHA256SUMS | sed "s/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz/ubuntu.tar.gz/" > sha256_check.txt
+if ! sha256sum -c sha256_check.txt >/dev/null 2>&1; then
+    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m SHA256 checksum verification failed! The download may be corrupted or compromised.\n"
+    rm -rf SHA256SUMS sha256_check.txt ubuntu.tar.gz
+    exit 1
+fi
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m SHA256 checksum verified successfully!\n"
+rm -f SHA256SUMS sha256_check.txt
+
 fi
 
 cur=`pwd`
@@ -83,7 +95,7 @@ command+=" -b /proc"
 command+=" -b /sys"
 command+=" -b ubuntu-fs/tmp:/dev/shm"
 command+=" -b /data/data/com.termux"
-command+=" -b /:/host-rootfs"
+command+=" -b //:/host-rootfs"
 command+=" -b /sdcard"
 command+=" -b /storage"
 command+=" -b /mnt"
@@ -95,7 +107,7 @@ command+=" TERM=\$TERM"
 command+=" LANG=C.UTF-8"
 command+=" /bin/bash --login"
 com="\$@"
-if [ -z "\$1" ];then
+if [ -z "\$1" ] ;then
     exec \$command
 else
     \$command -c "\$com"
@@ -115,15 +127,15 @@ printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m
 printf "\e[0m"
 
 }
-if [ "$1" = "-y" ];then
+if [ "$1" = "-y" ] ;then
 install1
-elif [ "$1" = "" ];then
+elif [ "$1" = "" ] ;then
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;127m[QUESTION]:\e[0m \x1b[38;5;87m Do you want to install ubuntu-in-termux? [Y/n] "
 
 read cmd1
-if [ "$cmd1" = "y" ];then
+if [ "$cmd1" = "y" ] ;then
 install1
-elif [ "$cmd1" = "Y" ];then
+elif [ "$cmd1" = "Y" ] ;then
 install1
 else
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Installation aborted.\n"
