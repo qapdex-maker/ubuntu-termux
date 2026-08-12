@@ -4,7 +4,8 @@ time1="$( date +"%r" )"
 
 install1 () {
 directory=ubuntu-fs
-UBUNTU_VERSION='24.10'
+# Use supported, secure LTS release instead of unsupported, EOL 24.10 release
+UBUNTU_VERSION='24.04.4'
 if [ -d "$directory" ];then
 first=1
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Skipping the download and the extraction\n"
@@ -39,16 +40,14 @@ wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/u
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n"
 
 # Verify SHA256 checksum to protect against MITM / corruption (Sentinel security improvement)
+# Stream the SHA256 checksum directly to sha256sum without creating insecure or conflict-prone local files
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Verifying SHA256 checksum...\n"
-wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS -q -O SHA256SUMS
-grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" SHA256SUMS | sed "s/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz/ubuntu.tar.gz/" > sha256_check.txt
-if ! sha256sum -c sha256_check.txt >/dev/null 2>&1; then
+if ! wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | sed "s/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz/ubuntu.tar.gz/" | sha256sum -c - >/dev/null 2>&1; then
     printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m SHA256 checksum verification failed! The download may be corrupted or compromised.\n"
-    rm -rf SHA256SUMS sha256_check.txt ubuntu.tar.gz
+    rm -rf ubuntu.tar.gz
     exit 1
 fi
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m SHA256 checksum verified successfully!\n"
-rm -f SHA256SUMS sha256_check.txt
 
 fi
 
@@ -76,7 +75,7 @@ bin=startubuntu.sh
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Creating the start script, please wait...\n"
 cat > $bin <<- EOM
 #!/bin/bash
-cd \$(dirname \$0)
+cd "\$(dirname "\$0")"
 ## unset LD_PRELOAD in case termux-exec is installed
 unset LD_PRELOAD
 command="proot"
@@ -87,7 +86,7 @@ command+=" -0"
 command+=" -r $directory"
 if [ -n "\$(ls -A ubuntu-binds)" ]; then
     for f in ubuntu-binds/* ;do
-      . \$f
+      [ -f "\$f" ] && . "\$f"
     done
 fi
 command+=" -b /dev"
