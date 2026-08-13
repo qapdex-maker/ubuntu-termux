@@ -149,11 +149,12 @@ read cmd1
 if [ -z "$cmd1" ] || [ "$cmd1" = "y" ] || [ "$cmd1" = "Y" ] || [ "$cmd1" = "yes" ] || [ "$cmd1" = "Yes" ] || [ "$cmd1" = "YES" ] ;then
 install1
 else
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Installation aborted.\n"
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Installation aborted by user.\n"
 printf "\e[0m"
-exit
+exit 1
 fi
 else
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Installation aborted.\n"
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Invalid option: '$1'. Use -y to bypass interactive confirmation.\n"
 printf "\e[0m"
+exit 1
 fi
