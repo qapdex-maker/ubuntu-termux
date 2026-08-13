@@ -1,0 +1,5 @@
+# Bolt's Journal - Performance Optimizations
+
+## 2026-08-13 - PRoot Decompression and Archive Caching Optimizations
+**Learning:** In Termux environments, running commands inside `proot` incurs massive overhead because `proot` ptraces every single system call. Running CPU-bound gzip decompression inside `proot` via `tar -zxf` slows down extraction considerably. Separating decompression (`gzip -dc` running natively outside `proot`) and pipelining it to `proot --link2symlink tar -xf -` bypasses ptrace interception for the decompression phase, achieving substantial speedups. Additionally, deleting already existing rootfs archives blindly is an IO and network bottleneck; by validating existing local files against their SHA256 checksums first, we can reuse local caches safely.
+**Action:** 1. Separate CPU-intensive compression/decompression from ptrace-monitored execution in rootfs installations. 2. Implement robust checksum-based verification checks to safely reuse existing downloaded resources instead of always performing full downloads.
