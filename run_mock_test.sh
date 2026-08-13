@@ -1,0 +1,92 @@
+#!/bin/bash
+set -e
+
+echo "=== Setting up mock environment ==="
+MOCK_DIR=$(mktemp -d)
+mkdir -p "$MOCK_DIR/bin"
+mkdir -p "$MOCK_DIR/test_run"
+
+# Create mock dpkg
+cat << 'EOF' > "$MOCK_DIR/bin/dpkg"
+#!/bin/bash
+if [ "$1" = "--print-architecture" ]; then
+    echo "amd64"
+else
+    exit 1
+fi
+EOF
+chmod +x "$MOCK_DIR/bin/dpkg"
+
+# Create mock proot
+cat << 'EOF' > "$MOCK_DIR/bin/proot"
+#!/bin/bash
+# Shift past options to run the underlying command
+while [[ "$1" == -* ]]; do
+    shift
+done
+exec "$@"
+EOF
+chmod +x "$MOCK_DIR/bin/proot"
+
+# Create mock termux-fix-shebang
+cat << 'EOF' > "$MOCK_DIR/bin/termux-fix-shebang"
+#!/bin/bash
+exit 0
+EOF
+chmod +x "$MOCK_DIR/bin/termux-fix-shebang"
+
+# Save original path and export mock PATH
+ORIG_PATH="$PATH"
+export PATH="$MOCK_DIR/bin:$PATH"
+
+# Copy install.sh to the test run directory
+cp install.sh "$MOCK_DIR/test_run/"
+cd "$MOCK_DIR/test_run"
+
+# Pre-download the official archive so we have a local cache to test with
+echo "=== Pre-downloading a copy of rootfs for testing cache ==="
+wget https://cdimage.ubuntu.com/ubuntu-base/releases/24.04.4/release/ubuntu-base-24.04.4-base-amd64.tar.gz -q -O valid_ubuntu.tar.gz
+
+# Run Test 1: Full Download & Verify (Clean Run - no cached archive)
+echo "=== Running Test 1: install.sh (First installation - clean) ==="
+rm -f ubuntu.tar.gz ubuntu-fs ubuntu-binds startubuntu.sh
+bash install.sh -y
+
+echo "=== Verification of Test 1 ==="
+if [ -d "ubuntu-fs" ]; then
+    echo "SUCCESS: ubuntu-fs directory was created!"
+else
+    echo "FAILED: ubuntu-fs directory was not created!"
+    exit 1
+fi
+
+if [ -f "startubuntu.sh" ]; then
+    echo "SUCCESS: startubuntu.sh script was created!"
+else
+    echo "FAILED: startubuntu.sh was not created!"
+    exit 1
+fi
+
+# Clean up extracted files
+rm -rf ubuntu-fs ubuntu-binds startubuntu.sh
+
+# Run Test 2: Caching Skip (Valid ubuntu.tar.gz exists)
+echo "=== Running Test 2: install.sh (Caching - valid ubuntu.tar.gz exists) ==="
+cp valid_ubuntu.tar.gz ubuntu.tar.gz
+
+# Run install.sh and capture output to verify it skips downloading
+OUTPUT=$(bash install.sh -y 2>&1)
+echo "$OUTPUT"
+
+if echo "$OUTPUT" | grep -q "Existing ubuntu.tar.gz is valid! Skipping download."; then
+    echo "SUCCESS: Successfully detected valid archive and skipped download!"
+else
+    echo "FAILED: Did not skip download for a valid archive!"
+    exit 1
+fi
+
+# Clean up temporary test_run directory
+cd /
+rm -rf "$MOCK_DIR"
+
+echo "=== All Tests Completed successfully! ==="

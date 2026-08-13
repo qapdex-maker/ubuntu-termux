@@ -19,22 +19,33 @@ printf "\e[0m"
 exit 1
 fi
 if [ "$first" != 1 ];then
-if [ -f "ubuntu.tar.gz" ];then
-rm -rf ubuntu.tar.gz
-fi
-if [ ! -f "ubuntu.tar.gz" ];then
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Downloading the ubuntu rootfs, please wait...\n"
+# Determine architecture once for downloading and cache verification
 ARCHITECTURE=$(dpkg --print-architecture)
 case "$ARCHITECTURE" in
 aarch64) ARCHITECTURE=arm64;;
 arm) ARCHITECTURE=armhf;;
 amd64|x86_64) ARCHITECTURE=amd64;;
 *)
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Unknown architecture :- $ARCHITECTURE"
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Unknown architecture :- $ARCHITECTURE\n"
 exit 1
 ;;
-
 esac
+
+download_needed=1
+if [ -f "ubuntu.tar.gz" ];then
+    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz found. Verifying checksum to see if download can be skipped...\n"
+    # Stream the SHA256 checksum directly to sha256sum without creating insecure or conflict-prone local files
+    if wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | sed "s/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz/ubuntu.tar.gz/" | sha256sum -c - >/dev/null 2>&1; then
+        printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz is valid! Skipping download.\n"
+        download_needed=0
+    else
+        printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz is invalid or corrupted. Re-downloading...\n"
+        rm -rf ubuntu.tar.gz
+    fi
+fi
+
+if [ "$download_needed" = 1 ];then
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Downloading the ubuntu rootfs, please wait...\n"
 
 wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q -O ubuntu.tar.gz 
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n"
@@ -55,7 +66,9 @@ cur=`pwd`
 mkdir -p $directory
 cd $directory
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Decompressing the ubuntu rootfs, please wait...\n"
-proot --link2symlink tar -zxf $cur/ubuntu.tar.gz --exclude='dev'||:
+# Performance Optimization: Run the CPU-heavy decompression natively (outside of proot) and pipe the decompressed stream into proot.
+# This avoids ptrace interception overhead for the decompression process, significantly speeding up extraction in PRoot.
+gzip -dc "$cur/ubuntu.tar.gz" | proot --link2symlink tar -xf - --exclude='dev'||:
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m The ubuntu rootfs have been successfully decompressed!\n"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fixing the resolv.conf, so that you have access to the internet\n"
 printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > etc/resolv.conf
@@ -132,7 +145,7 @@ elif [ "$1" = "" ] ;then
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;127m[QUESTION]:\e[0m \x1b[38;5;87m Do you want to install ubuntu-in-termux? [Y/n] "
 
 read cmd1
-# Standardize user response to accept empty input (Enter) as default "Yes", plus other standard yes forms
+# Treat empty inputs (pressing Enter) as default "Yes", and accept standard affirmative variations
 if [ -z "$cmd1" ] || [ "$cmd1" = "y" ] || [ "$cmd1" = "Y" ] || [ "$cmd1" = "yes" ] || [ "$cmd1" = "Yes" ] || [ "$cmd1" = "YES" ] ;then
 install1
 else
