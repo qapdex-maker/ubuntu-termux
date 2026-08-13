@@ -1,5 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
+# Enforce secure umask so files created (like startubuntu.sh and resolv.conf)
+# are not writable by other local users on a multi-user environment.
+umask 022
+
 time1="$( date +"%r" )"
 
 install1 () {
@@ -26,7 +30,8 @@ aarch64) ARCHITECTURE=arm64;;
 arm) ARCHITECTURE=armhf;;
 amd64|x86_64) ARCHITECTURE=amd64;;
 *)
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Unknown architecture :- $ARCHITECTURE\n"
+# Secure against printf format string vulnerabilities by passing ARCHITECTURE via %s
+printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Unknown architecture :- %s\n" "${time1}" "$ARCHITECTURE"
 exit 1
 ;;
 esac
@@ -154,7 +159,8 @@ printf "\e[0m"
 exit 1
 fi
 else
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Invalid option: '$1'. Use -y to bypass interactive confirmation.\n"
+# Secure against printf format string vulnerabilities by passing user-supplied $1 via %s
+printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Invalid option: '%s'. Use -y to bypass interactive confirmation.\n" "${time1}" "$1"
 printf "\e[0m"
 exit 1
 fi
