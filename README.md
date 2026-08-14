@@ -1,4 +1,4 @@
-# 📱 ubuntu-termux
+
 
 [![Ubuntu Version](https://img.shields.io/badge/Ubuntu-24.04.4%20LTS-E95420?logo=ubuntu&logoColor=white)](https://cdimage.ubuntu.com/ubuntu-base/releases/24.04.4/release/)
 [![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
