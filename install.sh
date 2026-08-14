@@ -12,13 +12,13 @@ directory=ubuntu-fs
 UBUNTU_VERSION='24.04.4'
 if [ -d "$directory" ];then
 first=1
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Skipping the download and the extraction\n"
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Directory '%s' already exists. Skipping the download and the extraction.\n" "$directory"
 elif [ -z "$(command -v proot)" ];then
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Please install proot.\n"
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m proot is missing! Please install it by running: pkg install proot\n"
 printf "\e[0m"
 exit 1
 elif [ -z "$(command -v wget)" ];then
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Please install wget.\n"
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m wget is missing! Please install it by running: pkg install wget\n"
 printf "\e[0m"
 exit 1
 fi
@@ -52,7 +52,7 @@ fi
 if [ "$download_needed" = 1 ];then
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Downloading the ubuntu rootfs, please wait...\n"
 
-wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q -O ubuntu.tar.gz 
+wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q --show-progress -O ubuntu.tar.gz
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n"
 
 # Verify SHA256 checksum to protect against MITM / corruption (Sentinel security improvement)
