@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" width="100%" height="100%">
+  <!-- Outer shadow and background container -->
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2d2d2d" />
+      <stop offset="100%" stop-color="#1f1f1f" />
+    </linearGradient>
+  </defs>
+
+  <!-- Terminal Window Shadow & Main Box -->
+  <g filter="url(#shadow)">
+    <!-- Terminal Background -->
+    <rect x="20" y="20" width="760" height="580" rx="10" fill="#0c0e14" />
+    <!-- Terminal Border -->
+    <rect x="20" y="20" width="760" height="580" rx="10" fill="none" stroke="#252b37" stroke-width="1.5" />
+  </g>
+
+  <!-- Terminal Header / Title Bar -->
+  <rect x="20" y="20" width="760" height="40" rx="10" fill="url(#headerGrad)" />
+  <!-- Clip bottom corners of title bar so they don't overlap with background rx -->
+  <rect x="20" y="50" width="760" height="10" fill="#0c0e14" />
+
+  <!-- Window Control Buttons (macOS style but fit for general tech theme) -->
+  <circle cx="45" cy="40" r="6" fill="#ff5f56" />
+  <circle cx="65" cy="40" r="6" fill="#ffbd2e" />
+  <circle cx="85" cy="40" r="6" fill="#27c93f" />
+
+  <!-- Terminal Title -->
+  <text x="400" y="45" font-family="SFMono-Regular, Consolas, Menlo, monospace" font-size="13" fill="#8f93a2" text-anchor="middle" font-weight="bold">Termux — ~/ubuntu-termux</text>
+
+  <!-- Status / Network indicators inside terminal header (Android/Termux vibe) -->
+  <text x="750" y="45" font-family="SFMono-Regular, Consolas, Menlo, monospace" font-size="12" fill="#4d5466" text-anchor="end">100% 🔋  LTE 📶</text>
+
+  <!-- Terminal Output Text -->
+  <g font-family="SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier, monospace" font-size="12.5" fill="#a6accd" xml:space="preserve">
+    <!-- Command Prompts and User Input -->
+    <text x="40" y="90" fill="#47ff9c">~ $ <tspan fill="#ffffff">git clone https://github.com/qapdex-maker/ubuntu-termux.git</tspan></text>
+    <text x="40" y="110" fill="#8f93a2">Cloning into 'ubuntu-termux'...</text>
+    <text x="40" y="130" fill="#8f93a2">Resolving deltas: 100% (45/45), done.</text>
+
+    <text x="40" y="155" fill="#47ff9c">~ $ <tspan fill="#ffffff">cd ubuntu-termux &amp;&amp; ./install.sh</tspan></text>
+
+    <!-- Timestamp format: \x1b[38;5;214m[01:23:45 PM]\e[0m -->
+    <!-- Log formats: -->
+    <!-- QUESTION: \x1b[38;5;127m[QUESTION]:\e[0m \x1b[38;5;87m Do you want to install ubuntu-in-termux? [Y/n] -->
+    <text x="40" y="180">
+      <tspan fill="#ff8700">[02:14:10 PM]</tspan>
+      <tspan fill="#d700d7"> [QUESTION]:</tspan>
+      <tspan fill="#00f3ff"> Do you want to install ubuntu-in-termux? [Y/n] y</tspan>
+    </text>
+
+    <!-- INFO: \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m ... -->
+    <text x="40" y="205">
+      <tspan fill="#ff8700">[02:14:12 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Fetching expected SHA256 checksum from remote server...</tspan>
+    </text>
+
+    <text x="40" y="230">
+      <tspan fill="#ff8700">[02:14:13 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Downloading the ubuntu rootfs, please wait...</tspan>
+    </text>
+
+    <!-- Download Progress Bar (Simulated wget -c) -->
+    <!-- ubuntu-base-24.04.4-base-arm64.tar.gz -->
+    <text x="40" y="255" fill="#8f93a2">
+      <tspan fill="#ffcb6b">ubuntu.tar.gz</tspan>   100%[====================================&gt;]  31.42M  24.8MB/s    in 1.3s
+    </text>
+
+    <text x="40" y="280">
+      <tspan fill="#ff8700">[02:14:15 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Download complete!</tspan>
+    </text>
+
+    <text x="40" y="305">
+      <tspan fill="#ff8700">[02:14:15 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Verifying SHA256 checksum...</tspan>
+    </text>
+
+    <text x="40" y="330">
+      <tspan fill="#ff8700">[02:14:16 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> SHA256 checksum verified successfully!</tspan>
+    </text>
+
+    <text x="40" y="355">
+      <tspan fill="#ff8700">[02:14:16 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Decompressing the ubuntu rootfs, please wait...</tspan>
+    </text>
+
+    <text x="40" y="380">
+      <tspan fill="#ff8700">[02:14:28 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> The ubuntu rootfs have been successfully decompressed!</tspan>
+    </text>
+
+    <text x="40" y="405">
+      <tspan fill="#ff8700">[02:14:28 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Fixing the resolv.conf, so that you have access to the internet</tspan>
+    </text>
+
+    <text x="40" y="430">
+      <tspan fill="#ff8700">[02:14:28 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Writing stubs, please wait...</tspan>
+    </text>
+
+    <text x="40" y="453">
+      <tspan fill="#ff8700">[02:14:28 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Successfully wrote stubs!</tspan>
+    </text>
+
+    <text x="40" y="476">
+      <tspan fill="#ff8700">[02:14:28 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> Creating the start script, please wait...</tspan>
+    </text>
+
+    <text x="40" y="499">
+      <tspan fill="#ff8700">[02:14:29 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> The start script has been successfully created!</tspan>
+    </text>
+
+    <text x="40" y="522">
+      <tspan fill="#ff8700">[02:14:29 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#c792ea"> [SUCCESS]: The installation has been completed!</tspan>
+    </text>
+
+    <text x="40" y="545">
+      <tspan fill="#ff8700">[02:14:29 PM]</tspan>
+      <tspan fill="#5fd75f"> [Installer thread/INFO]:</tspan>
+      <tspan fill="#00f3ff"> You can now launch Ubuntu with </tspan>
+      <tspan fill="#ffcb6b" font-weight="bold">./startubuntu.sh</tspan>
+    </text>
+
+    <!-- Final Launch Command -->
+    <text x="40" y="575" fill="#47ff9c">~ $ <tspan fill="#ffcb6b">./startubuntu.sh</tspan></text>
+    <text x="40" y="593" fill="#ffffff" font-weight="bold">root@ubuntu:~# <tspan font-weight="normal" fill="#8f93a2">_</tspan></text>
+  </g>
+</svg>
