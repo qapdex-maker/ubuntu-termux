@@ -42,6 +42,7 @@ Clone this repository and run the installation script:
 ```bash
 git clone https://github.com/qapdex-maker/ubuntu-termux.git
 cd ubuntu-termux
+chmod +x install.sh
 ./install.sh
 ```
 *Alternatively, if you want to bypass the interactive prompt and install immediately, run with the `-y` flag:*
