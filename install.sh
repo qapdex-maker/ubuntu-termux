@@ -36,16 +36,24 @@ exit 1
 ;;
 esac
 
+# Performance/Security Optimization: Fetch expected SHA256 checksum from the remote server EXACTLY ONCE
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n"
+EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
+
+if [ -z "$EXPECTED_SHA256" ]; then
+    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Failed to retrieve remote SHA256 checksum. Please check your internet connection.\n"
+    exit 1
+fi
+
 download_needed=1
 if [ -f "ubuntu.tar.gz" ];then
     printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz found. Verifying checksum to see if download can be skipped...\n"
-    # Stream the SHA256 checksum directly to sha256sum without creating insecure or conflict-prone local files
-    if wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | sed "s/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz/ubuntu.tar.gz/" | sha256sum -c - >/dev/null 2>&1; then
+    # Verify the archive locally in-memory using the pre-fetched EXPECTED_SHA256, avoiding a redundant network request
+    if echo "$EXPECTED_SHA256  ubuntu.tar.gz" | sha256sum -c - >/dev/null 2>&1; then
         printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz is valid! Skipping download.\n"
         download_needed=0
     else
-        printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz is invalid or corrupted. Re-downloading...\n"
-        rm -rf ubuntu.tar.gz
+        printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Existing ubuntu.tar.gz is invalid or incomplete. Attempting to resume download...\n"
     fi
 fi
 
@@ -56,12 +64,18 @@ wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/u
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n"
 
 # Verify SHA256 checksum to protect against MITM / corruption (Sentinel security improvement)
-# Stream the SHA256 checksum directly to sha256sum without creating insecure or conflict-prone local files
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Verifying SHA256 checksum...\n"
-if ! wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | sed "s/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz/ubuntu.tar.gz/" | sha256sum -c - >/dev/null 2>&1; then
-    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m SHA256 checksum verification failed! The download may be corrupted or compromised.\n"
+if ! echo "$EXPECTED_SHA256  ubuntu.tar.gz" | sha256sum -c - >/dev/null 2>&1; then
+    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Resumed download failed checksum validation. Deleting and performing fresh download...\n"
     rm -rf ubuntu.tar.gz
-    exit 1
+    # Fall back to a complete fresh download
+    wget -q --show-progress "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" -O ubuntu.tar.gz
+    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Verifying SHA256 checksum of fresh download...\n"
+    if ! echo "$EXPECTED_SHA256  ubuntu.tar.gz" | sha256sum -c - >/dev/null 2>&1; then
+        printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m SHA256 checksum verification failed! The download may be corrupted or compromised.\n"
+        rm -rf ubuntu.tar.gz
+        exit 1
+    fi
 fi
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m SHA256 checksum verified successfully!\n"
 
