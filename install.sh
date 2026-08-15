@@ -38,7 +38,7 @@ esac
 
 # Performance/Security Optimization: Fetch expected SHA256 checksum from the remote server EXACTLY ONCE
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n"
-EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
+EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep -F "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
 
 if [ -z "$EXPECTED_SHA256" ]; then
     printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Failed to retrieve remote SHA256 checksum. Please check your internet connection.\n"
@@ -82,9 +82,9 @@ printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m
 
 fi
 
-cur=`pwd`
-mkdir -p $directory
-cd $directory
+cur="$(pwd)"
+mkdir -p "$directory"
+cd "$directory"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Decompressing the ubuntu rootfs, please wait...\n"
 # Performance Optimization: Run the CPU-heavy decompression natively (outside of proot) and pipe the decompressed stream into proot.
 # This avoids ptrace interception overhead for the decompression process, significantly speeding up extraction in PRoot.
@@ -96,19 +96,19 @@ rm -f etc/resolv.conf
 printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > etc/resolv.conf
 stubs=()
 stubs+=('usr/bin/groups')
-for f in ${stubs[@]};do
+for f in "${stubs[@]}";do
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Writing stubs, please wait...\n"
-echo -e "#!/bin/sh\nexit" > "$f"
+printf '#!/bin/sh\nexit\n' > "$f"
 done
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Successfully wrote stubs!\n"
-cd $cur
+cd "$cur"
 
 fi
 
 mkdir -p ubuntu-binds
 bin=startubuntu.sh
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Creating the start script, please wait...\n"
-cat > $bin <<- EOM
+cat > "$bin" <<- EOM
 #!/bin/bash
 cd "\$(dirname "\$0")"
 ## unset LD_PRELOAD in case termux-exec is installed
@@ -148,13 +148,13 @@ fi
 EOM
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m The start script has been successfully created!\n"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fixing shebang of startubuntu.sh, please wait...\n"
-termux-fix-shebang $bin
+termux-fix-shebang "$bin"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Successfully fixed shebang of startubuntu.sh! \n"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Making startubuntu.sh executable please wait...\n"
-chmod +x $bin
+chmod +x "$bin"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Successfully made startubuntu.sh executable\n"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Cleaning up please wait...\n"
-rm ubuntu.tar.gz -rf
+rm -f ubuntu.tar.gz
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Successfully cleaned up!\n"
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m The installation has been completed! You can now launch Ubuntu with ./startubuntu.sh\n"
 printf "\e[0m"
