@@ -160,8 +160,21 @@ printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m
 printf "\e[0m"
 
 }
-if [ "$1" = "-y" ] ;then
+
+show_help () {
+    printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Ubuntu-in-Termux Installer\n\n"
+    printf "Usage: %s [OPTION]\n\n" "$0"
+    printf "Options:\n"
+    printf "  -y, --yes     Bypass interactive confirmation prompt\n"
+    printf "  -h, --help    Display this help message and exit\n\n"
+    printf "Run without options for interactive installation.\n"
+    printf "\e[0m"
+}
+if [ "$1" = "-y" ] || [ "$1" = "--yes" ] ;then
 install1
+elif [ "$1" = "-h" ] || [ "$1" = "--help" ] ;then
+show_help
+exit 0
 elif [ "$1" = "" ] ;then
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;127m[QUESTION]:\e[0m \x1b[38;5;87m Do you want to install ubuntu-in-termux? [Y/n] "
 
@@ -176,7 +189,7 @@ exit 1
 fi
 else
 # Secure against printf format string vulnerabilities by passing user-supplied $1 via %s
-printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Invalid option: '%s'. Use -y to bypass interactive confirmation.\n" "${time1}" "$1"
+printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Invalid option: '%s'. Use -h or --help to view available options.\n" "${time1}" "$1"
 printf "\e[0m"
 exit 1
 fi
