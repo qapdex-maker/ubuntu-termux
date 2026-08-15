@@ -85,6 +85,40 @@ else
     exit 1
 fi
 
+# Clean up extracted files
+rm -rf ubuntu-fs ubuntu-binds startubuntu.sh
+
+# Run Test 3: Standard Help Flag (-h)
+echo "=== Running Test 3: install.sh (-h help flag) ==="
+HELP_OUTPUT=$(bash install.sh -h)
+if echo "$HELP_OUTPUT" | grep -q "Ubuntu-in-Termux Installer" && echo "$HELP_OUTPUT" | grep -q "\-\-yes"; then
+    echo "SUCCESS: -h option displayed help message correctly!"
+else
+    echo "FAILED: -h option did not display expected help message!"
+    exit 1
+fi
+
+# Run Test 4: Long Help Flag (--help)
+echo "=== Running Test 4: install.sh (--help flag) ==="
+HELP_OUTPUT_LONG=$(bash install.sh --help)
+if echo "$HELP_OUTPUT_LONG" | grep -q "Ubuntu-in-Termux Installer"; then
+    echo "SUCCESS: --help option displayed help message correctly!"
+else
+    echo "FAILED: --help option did not display expected help message!"
+    exit 1
+fi
+
+# Run Test 5: Long Yes Flag (--yes)
+echo "=== Running Test 5: install.sh (--yes flag) ==="
+cp valid_ubuntu.tar.gz ubuntu.tar.gz
+YES_OUTPUT=$(bash install.sh --yes 2>&1)
+if echo "$YES_OUTPUT" | grep -q "The installation has been completed!"; then
+    echo "SUCCESS: --yes flag ran installation successfully!"
+else
+    echo "FAILED: --yes flag failed to run installation!"
+    exit 1
+fi
+
 # Clean up temporary test_run directory
 cd /
 rm -rf "$MOCK_DIR"
