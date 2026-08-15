@@ -60,7 +60,8 @@ fi
 if [ "$download_needed" = 1 ];then
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Downloading the ubuntu rootfs, please wait...\n"
 
-wget https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q --show-progress -O ubuntu.tar.gz
+# Performance Optimization: Use -c (--continue) to resume partial downloads if interrupted, saving bandwidth and time.
+wget -c https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q --show-progress -O ubuntu.tar.gz
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n"
 
 # Verify SHA256 checksum to protect against MITM / corruption (Sentinel security improvement)
@@ -118,11 +119,10 @@ command="proot"
 command+=" --link2symlink"
 command+=" -0"
 command+=" -r $directory"
-if [ -n "\$(ls -A ubuntu-binds)" ]; then
-    for f in ubuntu-binds/* ;do
-      [ -f "\$f" ] && . "\$f"
-    done
-fi
+# Performance Optimization: Iterate over bind mount scripts directly without spawning an unnecessary subshell/process via `ls -A`.
+for f in ubuntu-binds/* ;do
+  [ -f "\$f" ] && . "\$f"
+done
 command+=" -b /dev"
 command+=" -b /proc"
 command+=" -b /sys"
