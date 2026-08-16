@@ -20,9 +20,19 @@ chmod +x "$MOCK_DIR/bin/dpkg"
 # Create mock proot
 cat << 'EOF' > "$MOCK_DIR/bin/proot"
 #!/bin/bash
-# Shift past options to run the underlying command
-while [[ "$1" == -* ]]; do
-    shift
+# Shift past options and option-arguments to run the underlying command
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -r|-b|-w|-k|-q)
+            shift 2
+            ;;
+        -*)
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
 done
 exec "$@"
 EOF
@@ -116,6 +126,16 @@ if echo "$YES_OUTPUT" | grep -q "The installation has been completed!"; then
     echo "SUCCESS: --yes flag ran installation successfully!"
 else
     echo "FAILED: --yes flag failed to run installation!"
+    exit 1
+fi
+
+# Run Test 6: startubuntu.sh Inline Command Execution
+echo "=== Running Test 6: startubuntu.sh inline command execution ==="
+INLINE_OUTPUT=$(bash ./startubuntu.sh "echo hello_inline_test")
+if echo "$INLINE_OUTPUT" | grep -q "hello_inline_test"; then
+    echo "SUCCESS: Inline command executed successfully via startubuntu.sh!"
+else
+    echo "FAILED: Inline command failed to execute!"
     exit 1
 fi
 
