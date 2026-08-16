@@ -38,9 +38,9 @@ exit 1
 ;;
 esac
 
-# Performance/Security Optimization: Fetch expected SHA256 checksum from the remote server EXACTLY ONCE
-printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n" "$(get_time)"
-EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
+# Performance/Security Optimization: Fetch expected SHA256 checksum from the remote server EXACTLY ONCE using fixed-string matching (grep -F)
+printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n"
+EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep -F "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
 
 if [ -z "$EXPECTED_SHA256" ]; then
     printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Failed to retrieve remote SHA256 checksum. Please check your internet connection.\n" "$(get_time)"
@@ -126,7 +126,7 @@ command="proot"
 command+=" --link2symlink"
 command+=" -0"
 command+=" -r $directory"
-# Performance Optimization: Iterate over bind mount scripts directly without spawning an unnecessary subshell/process via `ls -A`.
+# Performance Optimization: Iterate over bind mount scripts directly without spawning an unnecessary subshell/process via ls.
 for f in ubuntu-binds/* ;do
   [ -f "\$f" ] && . "\$f"
 done
@@ -150,7 +150,8 @@ com="\$@"
 if [ -z "\$1" ] ;then
     exec \$command
 else
-    \$command -c "\$com"
+    # Performance Optimization: Use exec to replace parent shell process image with proot when running inline commands, eliminating process overhead.
+    exec \$command -c "\$com"
 fi
 EOM
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m The start script has been successfully created!\n" "$(get_time)"

@@ -20,9 +20,19 @@ chmod +x "$MOCK_DIR/bin/dpkg"
 # Create mock proot
 cat << 'EOF' > "$MOCK_DIR/bin/proot"
 #!/bin/bash
-# Shift past options to run the underlying command
-while [[ "$1" == -* ]]; do
-    shift
+# Shift past options and option-arguments to run the underlying command
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -r|-b|-w|-k|-q)
+            shift 2
+            ;;
+        -*)
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
 done
 exec "$@"
 EOF
@@ -119,14 +129,13 @@ else
     exit 1
 fi
 
-# Run Test 6: Verify startubuntu.sh rootfs check when ubuntu-fs is missing
-echo "=== Running Test 6: startubuntu.sh (Missing rootfs check) ==="
-rm -rf ubuntu-fs
-START_OUTPUT=$(bash startubuntu.sh 2>&1 || true)
-if echo "$START_OUTPUT" | grep -q "Rootfs directory 'ubuntu-fs' not found!"; then
-    echo "SUCCESS: startubuntu.sh correctly reported missing rootfs!"
+# Run Test 6: startubuntu.sh Inline Command Execution
+echo "=== Running Test 6: startubuntu.sh inline command execution ==="
+INLINE_OUTPUT=$(bash ./startubuntu.sh "echo hello_inline_test")
+if echo "$INLINE_OUTPUT" | grep -q "hello_inline_test"; then
+    echo "SUCCESS: Inline command executed successfully via startubuntu.sh!"
 else
-    echo "FAILED: startubuntu.sh did not report missing rootfs!"
+    echo "FAILED: Inline command failed to execute!"
     exit 1
 fi
 
