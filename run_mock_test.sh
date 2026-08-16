@@ -122,7 +122,7 @@ fi
 echo "=== Running Test 5: install.sh (--yes flag) ==="
 cp valid_ubuntu.tar.gz ubuntu.tar.gz
 YES_OUTPUT=$(bash install.sh --yes 2>&1)
-if echo "$YES_OUTPUT" | grep -q "The installation has been completed!"; then
+if echo "$YES_OUTPUT" | grep -q "Installation completed successfully!"; then
     echo "SUCCESS: --yes flag ran installation successfully!"
 else
     echo "FAILED: --yes flag failed to run installation!"
