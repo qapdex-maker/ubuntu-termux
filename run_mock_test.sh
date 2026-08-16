@@ -112,10 +112,21 @@ fi
 echo "=== Running Test 5: install.sh (--yes flag) ==="
 cp valid_ubuntu.tar.gz ubuntu.tar.gz
 YES_OUTPUT=$(bash install.sh --yes 2>&1)
-if echo "$YES_OUTPUT" | grep -q "The installation has been completed!"; then
+if echo "$YES_OUTPUT" | grep -q "Installation completed successfully!"; then
     echo "SUCCESS: --yes flag ran installation successfully!"
 else
     echo "FAILED: --yes flag failed to run installation!"
+    exit 1
+fi
+
+# Run Test 6: Verify startubuntu.sh rootfs check when ubuntu-fs is missing
+echo "=== Running Test 6: startubuntu.sh (Missing rootfs check) ==="
+rm -rf ubuntu-fs
+START_OUTPUT=$(bash startubuntu.sh 2>&1 || true)
+if echo "$START_OUTPUT" | grep -q "Rootfs directory 'ubuntu-fs' not found!"; then
+    echo "SUCCESS: startubuntu.sh correctly reported missing rootfs!"
+else
+    echo "FAILED: startubuntu.sh did not report missing rootfs!"
     exit 1
 fi
 
