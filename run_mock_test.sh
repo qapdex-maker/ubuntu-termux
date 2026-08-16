@@ -139,6 +139,35 @@ else
     exit 1
 fi
 
+# Run Test 7: Invalid Remote Checksum Handling
+echo "=== Running Test 7: install.sh (Invalid remote checksum handling) ==="
+rm -rf ubuntu-fs ubuntu-binds startubuntu.sh ubuntu.tar.gz
+# Override wget in mock PATH temporarily to simulate invalid remote SHA256 response
+cat << 'EOF' > "$MOCK_DIR/bin/wget"
+#!/bin/bash
+if [[ "$*" == *"SHA256SUMS"* ]]; then
+    echo "invalid_hash_string  ubuntu-base-24.04.4-base-amd64.tar.gz"
+else
+    exec /usr/bin/wget "$@"
+fi
+EOF
+chmod +x "$MOCK_DIR/bin/wget"
+
+set +e
+INVALID_CHECKSUM_OUTPUT=$(bash install.sh -y 2>&1)
+EXIT_CODE=$?
+set -e
+
+# Restore standard wget in mock PATH
+rm -f "$MOCK_DIR/bin/wget"
+
+if [ $EXIT_CODE -ne 0 ] && echo "$INVALID_CHECKSUM_OUTPUT" | grep -q "Failed to retrieve a valid remote SHA256 checksum"; then
+    echo "SUCCESS: Correctly rejected malformed remote SHA256 checksum!"
+else
+    echo "FAILED: Did not handle malformed remote SHA256 checksum correctly!"
+    exit 1
+fi
+
 # Clean up temporary test_run directory
 cd /
 rm -rf "$MOCK_DIR"
