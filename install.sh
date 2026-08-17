@@ -42,8 +42,9 @@ esac
 printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n"
 EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep -F "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
 
-if [ -z "$EXPECTED_SHA256" ]; then
-    printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Failed to retrieve remote SHA256 checksum. Please check your internet connection.\n" "$(get_time)"
+# Validate SHA256 checksum format (64-char hexadecimal string) to safeguard against corrupted or injected responses
+if [[ -z "$EXPECTED_SHA256" ]] || [[ ! "$EXPECTED_SHA256" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Failed to retrieve a valid remote SHA256 checksum. Please check your internet connection.\n" "$(get_time)"
     exit 1
 fi
 
