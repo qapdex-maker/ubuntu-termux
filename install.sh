@@ -39,7 +39,7 @@ exit 1
 esac
 
 # Performance/Security Optimization: Fetch expected SHA256 checksum from the remote server EXACTLY ONCE using fixed-string matching (grep -F)
-printf "\x1b[38;5;214m[${time1}]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n"
+printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n" "$(get_time)"
 EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep -F "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
 
 # Validate SHA256 checksum format (64-char hexadecimal string) to safeguard against corrupted or injected responses
