@@ -77,6 +77,13 @@ else
     exit 1
 fi
 
+if [ -x "ubuntu-fs/usr/bin/groups" ]; then
+    echo "SUCCESS: usr/bin/groups stub is executable!"
+else
+    echo "FAILED: usr/bin/groups stub is not executable!"
+    exit 1
+fi
+
 # Clean up extracted files
 rm -rf ubuntu-fs ubuntu-binds startubuntu.sh
 
