@@ -4,6 +4,9 @@
 # are not writable by other local users on a multi-user environment.
 umask 022
 
+# Fail-fast and safer pipe handling to catch decompression failures
+set -euo pipefail
+
 get_time () {
     date +"%r"
 }
@@ -40,7 +43,7 @@ esac
 
 # Performance/Security Optimization: Fetch expected SHA256 checksum from the remote server EXACTLY ONCE using fixed-string matching (grep -F)
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fetching expected SHA256 checksum from remote server...\n" "$(get_time)"
-EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep -F "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1)
+EXPECTED_SHA256=$(wget -q -O- "https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/SHA256SUMS" | grep -F "ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz" | cut -d' ' -f1 || true)
 
 # Validate SHA256 checksum format (64-char hexadecimal string) to safeguard against corrupted or injected responses
 if [[ -z "$EXPECTED_SHA256" ]] || [[ ! "$EXPECTED_SHA256" =~ ^[0-9a-fA-F]{64}$ ]]; then
@@ -91,17 +94,33 @@ cd $directory
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Decompressing the ubuntu rootfs, please wait...\n" "$(get_time)"
 # Performance Optimization: Run the CPU-heavy decompression natively (outside of proot) and pipe the decompressed stream into proot.
 # This avoids ptrace interception overhead for the decompression process, significantly speeding up extraction in PRoot.
-gzip -dc "$cur/ubuntu.tar.gz" | proot --link2symlink tar -xf - --exclude='dev'||:
+# Do not swallow errors from tar; fail securely if decompression/extraction fails.
+gzip -dc "$cur/ubuntu.tar.gz" | proot --link2symlink tar -xf - --exclude='dev'
+if [ $? -ne 0 ]; then
+    printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Rootfs decompression or extraction failed! Aborting.\n" "$(get_time)"
+    exit 1
+fi
+
+# Verify decompression integrity by checking for essential rootfs directories
+if [ ! -d "etc" ] || [ ! -d "usr" ]; then
+    printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Rootfs extraction failed or was incomplete! Essential system directories are missing.\n" "$(get_time)"
+    exit 1
+fi
+
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m The ubuntu rootfs have been successfully decompressed!\n" "$(get_time)"
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Fixing the resolv.conf, so that you have access to the internet\n" "$(get_time)"
 # Unlink any pre-existing resolv.conf symlink in rootfs to prevent symlink traversal/arbitrary file write
 rm -f etc/resolv.conf
 printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > etc/resolv.conf
 stubs=()
-stubs+=('usr/bin/groups')
+stubs+=( 'usr/bin/groups' )
 for f in ${stubs[@]};do
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Writing stubs, please wait...\n" "$(get_time)"
-echo -e "#!/bin/sh\nexit" > "$f"
+# Ensure parent directory exists and write executable stub atomically
+mkdir -p "$(dirname "$f")"
+printf '%s
+' '#!/bin/sh' 'exit' > "$f"
+chmod 0755 "$f"
 done
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Successfully wrote stubs!\n" "$(get_time)"
 cd $cur
@@ -115,7 +134,7 @@ cat > $bin <<- EOM
 #!/bin/bash
 cd "\$(dirname "\$0")"
 if [ ! -d "$directory" ]; then
-    printf "\x1b[38;5;203m[ERROR]:\e[0m Rootfs directory '$directory' not found!\n"
+    printf "\x1b[38;5;203m[ERROR]:\e[0m Rootfs directory '%s' not found!\n" "$(get_time)" "$directory"
     printf "Please run './install.sh' first to install Ubuntu.\n"
     exit 1
 fi
