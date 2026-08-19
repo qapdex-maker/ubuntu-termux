@@ -28,7 +28,7 @@ Below is a simulated interactive terminal showcase of the installation process a
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Prerequisites
 Open Termux and ensure your packages are up-to-date, then install the required utilities:
