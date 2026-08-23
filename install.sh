@@ -13,6 +13,7 @@ get_time () {
 
 install1 () {
 directory=ubuntu-fs
+first=0
 # Use supported, secure LTS release instead of unsupported, EOL 24.10 release
 UBUNTU_VERSION='24.04.4'
 if [ -d "$directory" ];then
@@ -70,7 +71,7 @@ printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[
 wget -c https://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${ARCHITECTURE}.tar.gz -q --show-progress -O ubuntu.tar.gz
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Download complete!\n" "$(get_time)"
 
-# Verify SHA256 checksum to protect against MITM / corruption (Sentinel security improvement)
+# Verify SHA256 checksum to protect against MITM / corruption
 printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;83m[Installer thread/INFO]:\e[0m \x1b[38;5;87m Verifying SHA256 checksum...\n" "$(get_time)"
 if ! echo "$EXPECTED_SHA256  ubuntu.tar.gz" | sha256sum -c - >/dev/null 2>&1; then
     printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;227m[WARNING]:\e[0m \x1b[38;5;87m Resumed download failed checksum validation. Deleting and performing fresh download...\n" "$(get_time)"

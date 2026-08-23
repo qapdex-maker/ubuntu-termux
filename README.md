@@ -3,17 +3,9 @@
 [![Ubuntu Version](https://img.shields.io/badge/Ubuntu-24.04.4%20LTS-E95420?logo=ubuntu&logoColor=white)](https://cdimage.ubuntu.com/ubuntu-base/releases/24.04.4/release/)
 [![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Environment](https://img.shields.io/badge/Environment-Termux-000000?logo=android&logoColor=white)](https://termux.dev/)
-[![Security](https://img.shields.io/badge/Security-Sentinel--Hardened-brightgreen?logo=dependabot)](#)
 
-An exceptionally fast, highly optimized, secure, and user-friendly installer script to run a full **Ubuntu 24.04.4 LTS (Noble Numbat)** environment inside **Termux** on Android devices. No root permissions required.
-
----
-
-## 📸 Installation & Launch Preview
-
-Below is a simulated interactive terminal showcase of the installation process and successful launch:
-
-![Termux Installation Screenshot](assets/screenshot.svg)
+An exceptionally fast, highly optimized, secure, and user-friendly installer script to run a full **Ubuntu 24.04.4 LTS (Noble Numbat)**
+environment inside **Termux** on Android devices. No root permissions required.
 
 ---
 
@@ -21,7 +13,7 @@ Below is a simulated interactive terminal showcase of the installation process a
 
 - ⚡ **Native Decompression Pipeline**: Bypasses PRoot system call interception overhead, reducing rootfs extraction times by up to **80%**.
 - 📥 **Resilient Archive Caching**: Intelligently identifies, resumes, and validates existing download caches using standard `wget -c` and secure local SHA256 checksums.
-- 🔒 **Sentinel Hardened Security**: Enforces safe default umask permissions, protects against format string vulnerabilities in terminal logging, and avoids insecure on-disk temporary metadata files.
+- 🔒 **Hardened Security**: Enforces safe default umask permissions, protects against format string vulnerabilities in terminal logging, and avoids insecure on-disk temporary metadata files.
 - 🎯 **Seamless User Experience**: Implements intuitive interactive defaults (e.g., hitting `[Enter]` on `[Y/n]` defaults to "Yes") and provides real-time, non-blocking download feedback.
 - ⚙️ **Automatic Network Resolution**: Presets standard public DNS name servers inside the guest environment's `/etc/resolv.conf`.
 - 📁 **Modular Bind-Mounts**: Supports automated directory binding (e.g., `/sdcard`, `/storage`, `/mnt`) for seamless host-guest file sharing.
@@ -94,7 +86,7 @@ To save mobile bandwidth and accelerate setup under spotty cell networks:
 - **Archive Caching**: Before downloading, the script verifies any existing `ubuntu.tar.gz` against the cached checksum. If valid, downloading is skipped entirely.
 - **Resumable Downloads (`wget -c`)**: If an incomplete download exists, the script attempts to resume it (`wget -c`). If validation fails, it safely falls back to a fresh download. This offers robust protection against cellular network drops.
 
-### 3. Hardened Security Design (Sentinel Principles)
+### 3. Hardened Security Design
 - **Secure Stream-Based Verification**: Typical installers write remote checksum files to temporary disk files, creating potential local race conditions or symlink attacks. Our script streams the remote metadata directly in-memory over Unix pipelines (`wget -q -O- | grep | ... | sha256sum -c -`) without creating predictable, vulnerable temporary files.
 - **Default Permissions (`umask 022`)**: The script enforces a secure default umask of `022` at initialization. This ensures all newly created files (like `startubuntu.sh` and guest configuration files) are readable but never writable by other local users on a multi-user Android environment.
 - **Format String Protection**: To safeguard logging output from format-string exploit vectors, all dynamic variables and user inputs are passed as explicit arguments using the `%s` format specifier in `printf` rather than evaluated directly inside format string literals:
