@@ -94,7 +94,7 @@ To save mobile bandwidth and accelerate setup under spotty cell networks:
   printf "\x1b[38;5;214m[%s]\e[0m \x1b[38;5;203m[ERROR]:\e[0m \x1b[38;5;87m Invalid option: '%s'.\n" "${time1}" "$1"
   ```
 
-### 4. Human-First UX Engineering (Palette Principles)
+### 4. Human-First UX Engineering
 - **Smart CLI Inputs**: In CLI tools, presenting options like `[Y/n]` implies that hitting "Enter" (submitting empty input) will select the capitalized option ("Yes"). The installer explicitly parses empty inputs as "Yes", while accepting standard variations (`y`, `Y`, `yes`, `Yes`, `YES`).
 - **Visual Progress Feedback**: Long downloads on mobile can appear frozen if output is completely suppressed. We configure `wget` with `-q --show-progress` to provide a clean, visual download speed, progress bar, and ETA while keeping terminal output uncluttered.
 
