@@ -136,7 +136,4 @@ Run the mock suite:
 ```
 This sets up a containerized mock directory structure, emulates Termux binary tools (such as `dpkg --print-architecture`, `termux-fix-shebang`, and `proot`), runs test cases for clean installations, and verifies that the local cache validation triggers correctly.
 
----
-
-## 📄 License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+--- 
